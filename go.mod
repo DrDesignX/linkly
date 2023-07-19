@@ -1,4 +1,4 @@
-module github.com/drdesignx/url-shortener
+module github.com/drdesignx/linkly
 
 go 1.20
 
