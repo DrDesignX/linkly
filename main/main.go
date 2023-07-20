@@ -1,8 +1,8 @@
 package main
 
 import (
+	//"fmt"
 	"fmt"
-
 	"github.com/drdesignx/linkly/model"
 )
 
@@ -11,5 +11,4 @@ import (
 func main() {
 	fmt.Println("Start...")
 	model.Setup()
-
 }
