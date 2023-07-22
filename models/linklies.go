@@ -25,7 +25,7 @@ func CreateLink(db *gorm.DB, redirectURL string, random string, user_id int) err
 	newlink := &Linkly{
 		Redirect:       redirectURL,
 		Linkly:         random,
-		ExpirationDate: ExpirationDate,
+		ExpirationDate: expirationDate,
 		IsAvailable:    true,
 		User_id:        user_id,
 	}

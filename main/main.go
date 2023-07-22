@@ -6,8 +6,7 @@ import (
 
 	"github.com/drdesignx/linkly/initializers"
 	"github.com/drdesignx/linkly/models"
-	// "github.com/gin-gonic/gin"
-	// "github.com/joho/godotenv"
+	"github.com/gin-gonic/gin"
 )
 
 func initializer() error {
@@ -26,11 +25,9 @@ func pong(c *gin.Context){
 		"message":"pong",
 	})
 }
-func main() {
-	initializer()
-	r := gin.Default()
-	r.GET("/ping",pong)
-	r.POST("/register", func(c *gin.Context) {
+
+
+func register(c *gin.Context){
 		username := c.PostForm("username")
 		email := c.PostForm("email")
 		password := c.PostForm("password")
@@ -43,8 +40,14 @@ func main() {
 		c.JSON(200, gin.H{
 			"message": "User created successfully",
 		})
-	},
-	)
+}
+
+
+func main() {
+	initializer()
+	r := gin.Default()
+	r.GET("/ping",pong)
+	r.POST("/register",register)
 	r.POST("/login", func(c *gin.Context) {
 		username := c.PostForm("username")
 		password := c.PostForm("password")
@@ -64,8 +67,7 @@ func main() {
 		c.JSON(200, gin.H{
 			"message": "Logged in successfully",
 		})
-	},
-	)
+	})
 	r.POST("/create", func(c *gin.Context) {
 		linkly := c.PostForm("linkly")
 		redirectURL := c.PostForm("redirect")
@@ -79,11 +81,10 @@ func main() {
 		c.JSON(200, gin.H{
 			"message": "Link created successfully",
 		})
-	},
-	)
+	})
 
 	r.GET("/links", func(c *gin.Context) {
-		links, err := models.GetLinks(initializers.DB)
+		links, err := models.GetLinkByUser(initializers.DB)
 		if err != nil {
 			c.JSON(400, gin.H{
 				"message": err.Error(),
@@ -93,8 +94,7 @@ func main() {
 		c.JSON(200, gin.H{
 			"links": links,
 		})
-	},
-	)
+	})
 	r.GET("/links/:linkly", func(c *gin.Context) {
 		linkly := c.Param("linkly")
 		link, err := models.GetLink(initializers.DB, linkly)
@@ -107,8 +107,7 @@ func main() {
 		c.JSON(200, gin.H{
 			"link": link,
 		})
-	},
-	)
+	})
 	r.PUT("/links/:linkly", func(c *gin.Context) {
 		linkly := c.Param("linkly")
 		redirectURL := c.PostForm("redirect")
@@ -121,8 +120,7 @@ func main() {
 		c.JSON(200, gin.H{
 			"message": "Link updated successfully",
 		})
-	},
-	)
+	})
 	r.DELETE("/links/:linkly", func(c *gin.Context) {
 		linkly := c.Param("linkly")
 		if err := models.DeleteLink(initializers.DB, linkly); err != nil {
@@ -134,8 +132,7 @@ func main() {
 		c.JSON(200, gin.H{
 			"message": "Link deleted successfully",
 		})
-	},
-	)
-	r.Run(os.Getenv("PORT"), // listen and serve on
+	})
 
+	r.Run(os.Getenv("PORT"))
 }
