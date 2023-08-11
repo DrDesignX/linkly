@@ -1,27 +1,41 @@
 package models
 
 import (
+	"log"
+	"time"
+
+	Initializers "github.com/drdesignx/linkly/initializers"
+	"github.com/drdesignx/linkly/utils"
 	"gorm.io/gorm"
-	_ "time"
 )
 
 type User struct {
-	gorm.Model
-	Username string `json:"username" gorm:"not null;unique"`
-	Email    string `json:"email" gorm:"not null;unique"`
-	Password string `json:"password" gorm:"not null"`
-	IsActive bool   `json:"is_active" grom:"default:true"`
-	IsAdmin  bool   `json:"is_admin" grom:"default:false"`
+	ID        int            `json:"id" gorm:"primaryKey;autoIncrement"`
+	Username  string         `json:"username" gorm:"unique;not null;size:255"`
+	Email     string         `json:"email" gorm:"unique;not null;size:255"`
+	Password  string         `json:"password" gorm:"not null;size:255"`
+	IsActive  bool           `json:"is_active" gorm:"default:true"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }
 
-// CreateUser creates a new user
-func CreateUser(db *gorm.DB, username string, email string, password string) error {
-	newuser := &User{
+// CreateUser creates a new user in the database.
+func CreateUser(username, email, password string) error {
+	pass, err := utils.HashPassword(password)
+	if err != nil {
+		log.Println("error generating hash password ", err)
+		return err
+	}
+
+	newUser := &User{
 		Username: username,
 		Email:    email,
-		Password: password,
+		Password: pass,
+		IsActive: true,
 	}
-	return db.Create(newuser).Error
+
+	return Initializers.DB.Create(newUser).Error
 }
 
 // getUser gets a user by username

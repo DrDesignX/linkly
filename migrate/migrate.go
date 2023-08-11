@@ -7,16 +7,18 @@ import (
 	"github.com/drdesignx/linkly/models"
 )
 
-
-func initializer(){
-	if err := initializers.LoadEnvVariable(); err != nil {
+func initializer() {
+	if err := initializers.LoadEnvVariables(); err != nil {
 		log.Fatal(err)
 	}
-	if err := initializers.ConnectoToDB(); err != nil {
+	if err := initializers.ConnectToDB(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func main() {
-	initializers.DB.AutoMigrate(&models.Linkly{}, &models.User{})
+func RunMigrate() error {
+	if err := initializers.DB.AutoMigrate(&models.Linkly{}, &models.User{}); err != nil {
+		return err
+	}
+	return nil
 }
