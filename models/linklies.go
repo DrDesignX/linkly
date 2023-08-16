@@ -1,27 +1,33 @@
 package models
 
 import (
+	"log"
 	"time"
+
+	"github.com/drdesignx/linkly/initializers"
 	"gorm.io/gorm"
 )
 
-var(
+var (
 	expirationDate = time.Now().Add(30 * 24 * time.Hour)
 )
+
 type Linkly struct {
-	gorm.Model
-	Redirect       string    `json:"redirect" gorm:"not null"`
-	Linkly         string    `json:"linkly" gorm:"not null;unique"`
-	Clicked        int       `json:"clicked" gorm:"default:0"`
-	IsAvailable    bool      `json:"is_available" gorm:"default:true"`
-	User_id        int       `json:"user_id"`
-	ExpirationDate time.Time `json:"expiration_date" gorm:""`
-	User           User      `gorm:"foreignKey:User_id"`
+	ID             int            `json:"id" gorm:"primaryKey;autoIncrement"`
+	Redirect       string         `json:"redirect" gorm:"not null"`
+	Linkly         string         `json:"linkly" gorm:"not null;unique"`
+	Clicked        int            `json:"clicked" gorm:"default:0"`
+	IsAvailable    bool           `json:"is_available" gorm:"default:true"`
+	User_id        int            `json:"user_id"`
+	ExpirationDate time.Time      `json:"expiration_date" gorm:""`
+	User           User           `gorm:"foreignKey:User_id"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }
 
-
 // CreateLink creates a new link
-func CreateLink(db *gorm.DB, redirectURL string, random string, user_id int) error {
+func CreateLink(redirectURL string, random string, user_id int) error {
 	newlink := &Linkly{
 		Redirect:       redirectURL,
 		Linkly:         random,
@@ -30,8 +36,9 @@ func CreateLink(db *gorm.DB, redirectURL string, random string, user_id int) err
 		User_id:        user_id,
 	}
 
-	return db.Create(newlink).Error
+	return initializers.DB.Create(newlink).Error
 }
+
 // GetLink gets a link by user id
 func GetLinkByUser(db *gorm.DB, user_id int) ([]*Linkly, error) {
 	links := []*Linkly{}
@@ -43,40 +50,41 @@ func GetLinkByUser(db *gorm.DB, user_id int) ([]*Linkly, error) {
 }
 
 // GetLink gets a link by linkly
-func GetLink(db *gorm.DB, linkly string) (*Linkly, error) {
+func GetLink(linkly string) (*Linkly, error) {
 	link := &Linkly{}
-	err := db.Where("linkly = ?", linkly).First(link).Error
+	err := initializers.DB.Where("linkly= ?", linkly).First(link).Error
 	if err != nil {
 		return nil, err
 	}
+	log.Println(link.Redirect)
 	return link, nil
 }
 
 // UpdateLink updates a link
-func UpdateLink(db *gorm.DB, linkly string, redirectURL string) error {
-	link, err := GetLink(db, linkly)
+func UpdateLink(linkly string, redirectURL string) error {
+	link, err := GetLink(linkly)
 	if err != nil {
 		return err
 	}
 	link.Redirect = redirectURL
-	return db.Save(link).Error
+	return initializers.DB.Save(link).Error
 }
 
 // DeleteLink deletes a link
-func DeleteLink(db *gorm.DB, linkly string) error {
-	link, err := GetLink(db, linkly)
+func DeleteLink(linkly string) error {
+	link, err := GetLink(linkly)
 	if err != nil {
 		return err
 	}
-	return db.Delete(link).Error
+	return initializers.DB.Delete(link).Error
 }
 
 // UpdateClick updates a link (plus one)
-func UpdateClick(db *gorm.DB, linkly string) error {
-	link, err := GetLink(db, linkly)
+func UpdateClick(linkly string) error {
+	link, err := GetLink(linkly)
 	if err != nil {
 		return err
 	}
 	link.Clicked += 1
-	return db.Save(link).Error
+	return initializers.DB.Save(link).Error
 }

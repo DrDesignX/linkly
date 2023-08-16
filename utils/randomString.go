@@ -8,11 +8,10 @@ const (
 	Pool = "abcdefghijklmnopqrstuvwxyzABCDEFGQRSTUVWXYZ0123456789"
 )
 
-func RandomString(i int) string {
+func RandomString(length int) string {
 	var str string
-	for i < len(Pool) {
-		str += string(Pool[rand.Intn(len(Pool))+1])
-		i += 1
+	for i := 0; i < length; i++ {
+		str += string(Pool[rand.Intn(len(Pool))])
 	}
 	return str
 }

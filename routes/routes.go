@@ -33,7 +33,63 @@ func setupRoutes() *fiber.App {
 	router.Post("/logout", logout)
 	router.Post("/register", register)
 	router.Get("/validate", middlewares.RequireAuth, validate)
+	router.Post("/Create", middlewares.RequireAuth, createLink)
+	router.Get("/g", middlewares.RequireAuth, loadLink)
+
 	return router
+}
+
+func loadLink(ctx *fiber.Ctx) error {
+	r := ctx.Query("r")
+	log.Println(r)
+	link, err := models.GetLink(r)
+	if err != nil {
+		log.Printf("Error finding link: %v", err)
+		return ctx.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+	}
+
+	if link == nil {
+		return ctx.Status(fiber.StatusNotFound).SendString("Link not found")
+	}
+
+	redirectLink := link.Redirect
+	return ctx.Redirect(redirectLink)
+}
+
+func createLink(ctx *fiber.Ctx) error {
+	// Retrieve user information
+	username := ctx.Get("user")
+	log.Println(username)
+	user, err := findUserByUsername(username)
+	if err != nil {
+		log.Printf("Error finding user: %v", err)
+		return ctx.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+	}
+	userID := user.ID
+
+	// Get original URL from request
+	var data map[string]string
+	if err := ctx.BodyParser(&data); err != nil {
+		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "Failed to Read Body",
+		})
+		return err
+	}
+	originalURL := data["link"]
+	// Create a new Linkly
+	linkly := models.Linkly{
+		Redirect:       originalURL,
+		Linkly:         utils.RandomString(6),
+		User_id:        userID,
+		ExpirationDate: time.Now().Add(30 * 24 * time.Hour),
+	}
+
+	// Save the new Linkly to the database
+	if err := Initializers.DB.Create(&linkly).Error; err != nil {
+		log.Printf("Error creating link: %v", err)
+		return ctx.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+	}
+	return ctx.Status(fiber.StatusOK).JSON(linkly)
 }
 
 func logout(ctx *fiber.Ctx) error {
@@ -81,7 +137,7 @@ func login(ctx *fiber.Ctx) error {
 		ctx.Cookie(&fiber.Cookie{
 			Name:     "Authentication",
 			Value:    tokenString,
-			Expires:  time.Now().Add(time.Second * 60),
+			Expires:  time.Now().Add(time.Second * 120),
 			HTTPOnly: true,
 			SameSite: "lax",
 		})
@@ -90,24 +146,6 @@ func login(ctx *fiber.Ctx) error {
 	} else {
 		return ctx.Status(fiber.StatusMethodNotAllowed).SendString("Method Not Allowed")
 	}
-}
-
-func findUserByUsername(username string) (*models.User, error) {
-	var user models.User
-	result := Initializers.DB.Select("id, username, email, password").First(&user, "username = ?", username)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &user, nil
-}
-
-func generateToken(username string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": username,
-		"exp":      time.Now().Add(time.Second * 60).Unix(),
-	})
-
-	return token.SignedString([]byte(os.Getenv("SECRET_KEY")))
 }
 
 func validate(ctx *fiber.Ctx) error {
@@ -168,4 +206,22 @@ func userExists(username string) bool {
 		return false
 	}
 	return count > 0
+}
+
+func generateToken(username string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"username": username,
+		"exp":      time.Now().Add(time.Second * 120).Unix(),
+	})
+
+	return token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+}
+
+func findUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	result := Initializers.DB.Select("id, username, email, password").First(&user, "username = ?", username)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
 }

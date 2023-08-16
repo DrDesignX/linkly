@@ -36,7 +36,7 @@ func RequireAuth(ctx *fiber.Ctx) error {
 			fmt.Println(res.Error)
 			return ctx.SendStatus(fiber.StatusUnauthorized)
 		}
-		ctx.Set("user", string(user.Username))
+		ctx.Set("User", string(user.Username))
 		ctx.Next()
 	} else {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
