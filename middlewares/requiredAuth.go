@@ -22,8 +22,7 @@ func RequireAuth(ctx *fiber.Ctx) error {
 	})
 	if err != nil {
 		fmt.Println(err)
-		return ctx.Redirect("/login")
-		// return ctx.SendStatus(fiber.StatusUnauthorized)
+		return ctx.Redirect("/login", fiber.StatusUnauthorized)
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		fmt.Println("Claims: ", claims)

@@ -11,6 +11,7 @@ func HashPassword(Password string) (string, error) {
 	if err != nil {
 		log.Println("Error generating hash password: ", err)
 		return "", err
+
 	}
 	return string(hashPassword), nil
 }

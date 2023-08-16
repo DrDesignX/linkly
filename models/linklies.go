@@ -40,9 +40,9 @@ func CreateLink(redirectURL string, random string, user_id int) error {
 }
 
 // GetLink gets a link by user id
-func GetLinkByUser(db *gorm.DB, user_id int) ([]*Linkly, error) {
+func GetLinkByUser(user_id int) ([]*Linkly, error) {
 	links := []*Linkly{}
-	err := db.Where("user_id = ?", user_id).Find(&links).Error
+	err := initializers.DB.Where("user_id = ?", user_id).Find(&links).Error
 	if err != nil {
 		return nil, err
 	}

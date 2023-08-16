@@ -19,6 +19,5 @@ func ConnectToDB() error {
 		return err
 	}
 	log.Println("Connected To Database Successfully")
-
 	return nil
 }

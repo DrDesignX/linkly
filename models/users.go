@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/drdesignx/linkly/initializers"
 	Initializers "github.com/drdesignx/linkly/initializers"
 	"github.com/drdesignx/linkly/utils"
 	"gorm.io/gorm"
@@ -39,9 +40,9 @@ func CreateUser(username, email, password string) error {
 }
 
 // getUser gets a user by username
-func GetUser(db *gorm.DB, username string) (*User, error) {
+func GetUser(username string) (*User, error) {
 	user := &User{}
-	err := db.Where("username = ?", username).First(user).Error
+	err := initializers.DB.Where("username = ?", username).First(user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -49,33 +50,33 @@ func GetUser(db *gorm.DB, username string) (*User, error) {
 }
 
 // UpdateUser updates information of a user
-func UpdateUser(db *gorm.DB, username string, email string, password string) error {
-	user, err := GetUser(db, username)
+func UpdateUser(username string, email string, password string) error {
+	user, err := GetUser(username)
 	if err != nil {
 		return err
 	}
 	user.Email = email
 	user.Password = password
-	return db.Save(user).Error
+	return initializers.DB.Save(user).Error
 }
 
 // deleteUser deletes a user
-func DeleteUser(db *gorm.DB, username string) error {
-	user, err := GetUser(db, username)
+func DeleteUser(username string) error {
+	user, err := GetUser(username)
 	if err != nil {
 		return err
 	}
-	return db.Delete(user).Error
+	return initializers.DB.Delete(user).Error
 }
 
 // GetLinklies gets all linklies of a user
-func GetLinklies(db *gorm.DB, username string) ([]*Linkly, error) {
-	user, err := GetUser(db, username)
+func GetLinklies(username string) ([]*Linkly, error) {
+	user, err := GetUser(username)
 	if err != nil {
 		return nil, err
 	}
 	links := []*Linkly{}
-	err = db.Where("user_id = ?", user.ID).Find(&links).Error
+	err = initializers.DB.Where("user_id = ?", user.ID).Find(&links).Error
 	if err != nil {
 		return nil, err
 	}

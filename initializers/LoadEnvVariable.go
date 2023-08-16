@@ -12,6 +12,5 @@ func LoadEnvVariables() error {
 		log.Fatal("Error loading .env file", err.Error())
 		return err
 	}
-
 	return nil
 }

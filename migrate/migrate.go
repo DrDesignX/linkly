@@ -20,5 +20,6 @@ func RunMigrate() error {
 	if err := initializers.DB.AutoMigrate(&models.Linkly{}, &models.User{}); err != nil {
 		return err
 	}
+
 	return nil
 }

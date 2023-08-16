@@ -22,6 +22,7 @@ func Initialize() error {
 		log.Println("Initialization Failed " + err.Error())
 		return err
 	}
+
 	return nil
 }
 

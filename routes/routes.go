@@ -223,5 +223,6 @@ func findUserByUsername(username string) (*models.User, error) {
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
 	return &user, nil
 }
